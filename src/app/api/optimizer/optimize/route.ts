@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { optimizerService } from '@/services/optimizer.service'
 import { costService } from '@/services/cost.service'
 import { z } from 'zod'
+import { createOpenAI } from '@/lib/openai'
 
 const optimizeRequestSchema = z.object({
   text: z.string().min(1, 'Text is required'),
@@ -11,11 +12,20 @@ const optimizeRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const apiKey = request.headers.get('x-api-key')
+    
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'API key is required' },
+        { status: 401 }
+      )
+    }
+    
     const body = await request.json()
     
     const validatedBody = optimizeRequestSchema.parse(body)
     
-    const result = await optimizerService.optimize(validatedBody)
+    const result = await optimizerService.optimize(validatedBody, apiKey)
     
     const costCalculation = costService.calculateCost(
       result.originalTokens,

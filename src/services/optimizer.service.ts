@@ -1,4 +1,4 @@
-import openai from '@/lib/openai'
+import { createOpenAI } from '@/lib/openai'
 import { countTokens } from '@/lib/tokenizer'
 import { prisma } from '@/lib/prisma'
 import { OptimizationRequest, OptimizationResponse } from '@/types/optimizer'
@@ -15,12 +15,14 @@ export class OptimizerService {
     return prompts[technique] || prompts.general
   }
 
-  async optimize(request: OptimizationRequest): Promise<OptimizationResponse> {
+  async optimize(request: OptimizationRequest, apiKey?: string): Promise<OptimizationResponse> {
     const { text, model = 'gpt-4', technique = 'general' } = request
     
     const originalTokens = countTokens(text, model)
     
     const prompt = this.getPrompt(technique)
+    
+    const openai = createOpenAI(apiKey || process.env.OPENAI_API_KEY || '')
     
     try {
       const completion = await openai.chat.completions.create({
