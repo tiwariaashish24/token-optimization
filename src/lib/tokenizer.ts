@@ -1,47 +1,45 @@
-import { Tiktoken, get_encoding } from 'tiktoken'
+// Token estimation without tiktoken dependency
+// This provides a reasonable approximation for token counting
 
 export function countTokens(text: string, model: string = 'gpt-4'): number {
-  try {
-    const encoding = getEncoding('cl100k_base')
-    const tokens = encoding.encode(text)
-    encoding.free()
-    return tokens.length
-  } catch (error) {
-    console.error('Error counting tokens:', error)
-    return 0
-  }
+  return estimateTokens(text)
 }
 
 export function countTokensByModel(text: string, model: string): number {
-  const encodingMap: Record<string, string> = {
-    'gpt-4': 'cl100k_base',
-    'gpt-4-32k': 'cl100k_base',
-    'gpt-3.5-turbo': 'cl100k_base',
-    'gpt-3.5-turbo-16k': 'cl100k_base',
-    'text-davinci-003': 'p50k_base',
-    'text-davinci-002': 'p50k_base',
-    'code-davinci-002': 'p50k_base',
-  }
+  return estimateTokens(text)
+}
 
-  const encodingName = encodingMap[model] || 'cl100k_base'
-  const encoding = get_encoding(encodingName)
-  const tokens = encoding.encode(text)
-  encoding.free()
-  return tokens.length
+// Estimation method based on character and word count
+export function estimateTokens(text: string): number {
+  if (!text || text.length === 0) return 0
+  
+  const charCount = text.length
+  const wordCount = text.split(/\s+/).filter(w => w.length > 0).length
+  
+  // Different models have different tokenization patterns
+  // GPT-4 and GPT-3.5 use cl100k_base encoding which is roughly:
+  // - ~4 characters per token for English text
+  // - ~0.75 words per token for English text
+  
+  const charBased = Math.ceil(charCount / 4)
+  const wordBased = Math.ceil(wordCount / 0.75)
+  
+  // Average both methods for better accuracy
+  const estimated = Math.ceil((charBased + wordBased) / 2)
+  
+  // Adjust for code (more tokens per character)
+  const isCode = /[{}()\[\]<>,;:]/.test(text)
+  if (isCode) {
+    return Math.ceil(estimated * 1.3)
+  }
+  
+  return estimated
 }
 
 export function truncateToTokens(text: string, maxTokens: number, model: string = 'gpt-4'): string {
-  const encoding = get_encoding('cl100k_base')
-  const tokens = encoding.encode(text)
-  
-  if (tokens.length <= maxTokens) {
-    encoding.free()
+  const estimatedChars = maxTokens * 4
+  if (text.length <= estimatedChars) {
     return text
   }
-
-  const truncatedTokens = tokens.slice(0, maxTokens)
-  const truncatedText = new TextDecoder().decode(encoding.decode(truncatedTokens))
-  encoding.free()
-  
-  return truncatedText
+  return text.slice(0, estimatedChars)
 }

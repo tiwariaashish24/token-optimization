@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { optimizerService } from '@/services/optimizer.service'
 import { costService } from '@/services/cost.service'
 import { z } from 'zod'
-import { createOpenAI } from '@/lib/openai'
 
 const optimizeRequestSchema = z.object({
   text: z.string().min(1, 'Text is required'),
@@ -12,7 +11,7 @@ const optimizeRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = request.headers.get('x-api-key')
+    const apiKey = request.headers.get('x-api-key') || process.env.OPENAI_API_KEY
     
     if (!apiKey) {
       return NextResponse.json(

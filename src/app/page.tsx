@@ -114,11 +114,6 @@ export default function Home() {
       return
     }
     
-    if (!apiKey) {
-      setError('Please set your OpenAI API key in the Settings tab')
-      return
-    }
-    
     setLoading(true)
     setError('')
     
@@ -127,7 +122,7 @@ export default function Home() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-api-key': apiKey
+          ...(apiKey ? { 'x-api-key': apiKey } : {})
         },
         body: JSON.stringify({ text, model, technique })
       })
@@ -171,11 +166,6 @@ export default function Home() {
       return
     }
     
-    if (!apiKey) {
-      setError('Please set your OpenAI API key in the Settings tab')
-      return
-    }
-    
     setDocumentLoading(true)
     setError('')
     
@@ -186,9 +176,7 @@ export default function Home() {
       
       const res = await fetch('/api/document/analyze', {
         method: 'POST',
-        headers: {
-          'x-api-key': apiKey
-        },
+        headers: apiKey ? { 'x-api-key': apiKey } : {},
         body: formData
       })
       
@@ -709,7 +697,7 @@ export default function Home() {
                     onChange={(e) => setApiKey(e.target.value)}
                   />
                   <p className="text-xs text-zinc-500">
-                    Your API key is stored locally in your browser and never sent to our servers.
+                    Optional: save a personal key in this browser. It is sent to the app when used; otherwise the server uses OPENAI_API_KEY.
                   </p>
                 </div>
 

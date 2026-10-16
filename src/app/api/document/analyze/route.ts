@@ -4,7 +4,7 @@ import { countTokens } from '@/lib/tokenizer'
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = request.headers.get('x-api-key')
+    const apiKey = request.headers.get('x-api-key') || process.env.OPENAI_API_KEY
     
     if (!apiKey) {
       return NextResponse.json(
