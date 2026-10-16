@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Optimization {
+  id          String   @id @default(cuid())
+  originalText String  @db.Text
+  optimizedText String @db.Text
+  originalTokens Int
+  optimizedTokens Int
+  tokenReduction Int
+  reductionPercentage Float
+  model         String
+  technique     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([model])
+  @@index([technique])
+}
+
+model TokenUsage {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+  model       String
+  tokensUsed  Int
+  cost        Float
+  description String?
+
+  @@index([date])
+  @@index([model])
+}
+
+model OptimizationHistory {
+  id          String   @id @default(cuid())
+  originalText String  @db.Text
+  tokenCount  Int
+  savedAt     DateTime @default(now())
+
+  @@index([savedAt])
+}

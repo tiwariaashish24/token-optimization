@@ -1,5 +1,7 @@
 allowBuilds:
+  '@prisma/client': true
   '@prisma/engines': true
+  '@prisma/adapter-pg': true
   esbuild: false
   prisma: true
   sharp: false
